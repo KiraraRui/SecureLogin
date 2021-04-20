@@ -1,0 +1,7 @@
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\bin\Debug\SecurePass.exe.config
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\bin\Debug\SecurePass.exe
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\bin\Debug\SecurePass.pdb
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\obj\Debug\SecurePass.csprojAssemblyReference.cache
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\obj\Debug\SecurePass.csproj.CoreCompileInputs.cache
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\obj\Debug\SecurePass.exe
+C:\Users\kira0698\source\repos\SecurePass\SecurePass\obj\Debug\SecurePass.pdb
