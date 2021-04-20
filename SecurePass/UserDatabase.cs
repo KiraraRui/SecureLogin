@@ -11,7 +11,7 @@ namespace SecurePass
         public SaltyPass Getusers(string username)
         {
             SqlConnection connection = new SqlConnection(connectionstring);
-            using (SqlCommand sqlcmd = new SqlCommand("SELECT salt,password FROM Users  WHERE username = @username", connection))
+            using (SqlCommand sqlcmd = new SqlCommand("SELECT Salt,HashedPass FROM Users  WHERE Username = @username", connection))
             {
                 sqlcmd.Parameters.AddWithValue("@username", username);
 
@@ -26,8 +26,8 @@ namespace SecurePass
 
                     if (reader.Read())
                     {
-                        salty.Salt = (reader["Username"].ToString());
-                        salty.Hashpassword = (reader["Item"].ToString());
+                        salty.Salt = (reader["Salt"].ToString());
+                        salty.Hashpassword = (reader["HashedPass"].ToString());
                     }
 
                     return salty;
