@@ -1,50 +1,76 @@
-﻿using System.Data.SqlClient;
+﻿using SecurePass.Models;
+using System.Data.SqlClient;
 
 namespace SecurePass
 {
     public class UserDatabase
     {
-        private static readonly string connectionstring = "SERVER=127.0.0.1; DATABASE=MyDatabase; UID=***; PWD=***";
+        private readonly string connectionstring = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SecurePassData;Integrated Security=True";
 
 
-        public static SqlDataReader Getusers(string username)
+        public SaltyPass Getusers(string username)
         {
             SqlConnection connection = new SqlConnection(connectionstring);
             using (SqlCommand sqlcmd = new SqlCommand("SELECT salt,password FROM Users  WHERE username = @username", connection))
             {
                 sqlcmd.Parameters.AddWithValue("@username", username);
-                connection.Open();
-                SqlDataReader reader = sqlcmd.ExecuteReader();
-                connection.Close();
 
-                return reader;
+                try
+                {
+
+
+                    connection.Open();
+                    SqlDataReader reader = sqlcmd.ExecuteReader();
+
+                    SaltyPass salty = new SaltyPass();
+
+                    if (reader.Read())
+                    {
+                        salty.Salt = (reader["Username"].ToString());
+                        salty.Hashpassword = (reader["Item"].ToString());
+                    }
+
+                    return salty;
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+
             }
+
         }
 
-
-        public static bool AddAUser(string username, string password)
+        public bool RegisterUser(string username, string salt, string hashedpass)
         {
             SqlConnection connection = new SqlConnection(connectionstring);
-            using (SqlCommand sqlcmd = new SqlCommand("INSERT INTO [Users] VALUES (@username, @password)", connection))
+            using (SqlCommand sqlcmd = new SqlCommand("INSERT INTO Users (Salt, Username, HashedPass) VALUES (@Salt, @Username, @HashedPass);", connection))
             {
-                sqlcmd.Parameters.AddWithValue("@username", username);
-                sqlcmd.Parameters.AddWithValue("@password", password);
+                sqlcmd.Parameters.AddWithValue("@Salt", salt);
+                sqlcmd.Parameters.AddWithValue("@Username", username);
+                sqlcmd.Parameters.AddWithValue("@HashedPass", hashedpass);
 
-                connection.Open();
-                sqlcmd.ExecuteNonQuery();
-                connection.Close();
+                try
+                {
+
+
+                    connection.Open();
+                    _ = sqlcmd.ExecuteNonQuery();
+
+                    return true;
+                }
+
+                finally
+                {
+                    connection.Close();
+                }
+
+                return false;
             }
-            return true;
         }
 
 
-        //protected void AddingUser(object sender)
-        //{
-        //    string username = txtUsername.Text;
-        //    string password = txtPassword.Text;
-
-        //    bool result = UserDatabase.AddAUser(username, password);
-        //}
     }
 }
 

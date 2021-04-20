@@ -1,13 +1,18 @@
-﻿using System;
-using System.Data.SqlClient;
-using System.Threading;
+﻿using SecurePass.Models;
+using System;
 
 namespace SecurePass
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static SaltAndPepper saltAndPepper;
+        private static UserDatabase userDatabase;
+
+        public static void Main(string[] args)
         {
+            saltAndPepper = new SaltAndPepper();
+            userDatabase = new UserDatabase();
+
             Console.WriteLine(@"
 
                                        _ _           _   _             
@@ -23,23 +28,24 @@ namespace SecurePass
 
             Console.WriteLine("Welcome to the application, please login or register");
 
-            Console.WriteLine(@"
+
+            bool isRunning = true;
+
+            while (isRunning)
+            {
+                Console.WriteLine(@"
                         +------------------------------------+
                         | +------------------------------------+
                         | |                                  | |
-                        | |     Click 1 for login            | |
-                        | |        click 2 for register      | |
-                        | |           click 3 for exit       | |
+                        | |        Click 1 for register      | |
+                        | |       click 2 for login          | |
+                        | |         click 3 for exit         | |
                         | |    ==========================    | |
-                        | |                                  | |
+                        | |  Press enter after your choice   | |
                         +------------------------------------+ |
                           +------------------------------------+ ");
 
-            bool successfull = false;
-            string input = Console.ReadLine();
-            //int loginAttempts = 0;
-            while (!successfull)
-            {
+                string input = Console.ReadLine();
                 if (input == "1")
                 {
                     Console.WriteLine("plz write your usename:");
@@ -47,86 +53,96 @@ namespace SecurePass
 
                     Console.WriteLine("plz enter your password:");
                     string txtPassword = Console.ReadLine();
-                    SqlDataReader reader = UserDatabase.Getusers(txtUsername);
 
-                    if (reader.HasRows)
+                    if (string.IsNullOrWhiteSpace(txtUsername) || string.IsNullOrWhiteSpace(txtPassword))
                     {
-                        reader.Read();
-                        string salt = reader.GetString(0);
-                        string hashedPassword = reader.GetString(1);
-
-
+                        Console.WriteLine("Welp hellu there seems like your username or password was empty, try again!");
                     }
+                    else
+                    {
+                        string salt = saltAndPepper.GetSalt();
+                        string hashedpass = saltAndPepper.ComputeHashWithSalt(txtPassword, salt);
 
-                }
+                        if (userDatabase.RegisterUser(txtUsername, salt, hashedpass))
+                        {
+                            Console.Clear();
+                            Console.WriteLine("wow u registered as an user");
 
-                /*
-                 *  Console.WriteLine("Heyyyy u logged in gj buddy");
-
-                         Console.WriteLine(@"
+                            Console.WriteLine(@"
                          +------------------------------------+
                          | +------------------------------------+
                          | |                                  | |
-                         | |          Heyyyy u logged         | |
-                         | |            in gj buddy           | |
+                         | |        Heyyyy u registered       | |
+                         | |             gj buddy             | |
                          | |    ==========================    | |
                          | |                                  | |
                          +------------------------------------+ |
                            +------------------------------------+ ");
-                */
 
-                //if (!successfull)
-                //{
-                //    Console.WriteLine("WWRRROOONNNG TRY AGAIN B....buddy :> ");
-                //    Console.ReadLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine("WWRRROOONNNG TRY AGAIN B....buddy :> ");
+                            Console.WriteLine(@"
+                         +------------------------------------+
+                         | +------------------------------------+
+                         | |                                  | |
+                         | |           WRROOOONNGGGG          | |
+                         | |        Try registering again     | |
+                         | |    ==========================    | |
+                         | |                                  | |
+                         +------------------------------------+ |
+                           +------------------------------------+ ");
+                        }
+                    }
 
+                }
+                if (input == "2")
+                {
+                    Console.WriteLine("plz write your usename:");
+                    string txtUsername = Console.ReadLine();
 
+                    Console.WriteLine("plz enter your password:");
+                    string txtPassword = Console.ReadLine();
 
-                //    break;
-                //}
+                    if (string.IsNullOrWhiteSpace(txtUsername) || string.IsNullOrWhiteSpace(txtPassword))
+                    {
+                        Console.WriteLine("Welp hellu there seems like your username or password was empty, try again!");
+                    }
+                    else
+                    {
+                        SaltyPass saltyPass = userDatabase.Getusers(txtUsername);
+                        string computedHash = saltAndPepper.ComputeHashWithSalt(txtPassword, saltyPass.Salt);
 
-                //else if (input == "2")
-                //{
-
-                //    Console.WriteLine("Enter your username:");
-                //    string username = Console.ReadLine();
-
-                //    Console.WriteLine("Enter your password:");
-                //    string password = Console.ReadLine();
-
-                //    Console.WriteLine("Register");
-                //    string addingUser = Console.ReadLine();
-
-                //    Array.Resize(ref user, Users.Length + 1);
-                //    Users[Users.Length - 1] = new Users(username, password);
-
-                //    successfull = true;
-
-
-                //}
+                        if (saltAndPepper.ValidateHash(computedHash, saltyPass.Hashpassword))
+                        {
+                            Console.Clear();
+                            Console.WriteLine(@"
+                         +------------------------------------+
+                         | +------------------------------------+
+                         | |                                  | |
+                         | |        Heyyyy u logged in        | |
+                         | |             gj buddy             | |
+                         | |    ==========================    | |
+                         | |                                  | |
+                         +------------------------------------+ |
+                           +------------------------------------+ ");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Welp hellu there seems like your username or password was wrong, try again!");
+                        }
+                    }
+                }
 
                 else if (input == "3")
                 {
-                    Console.WriteLine("you have choose to exit the application please wait\n");
-                    Thread.Sleep(3999);
-                    Environment.Exit(0);
+                    isRunning = false;
                 }
 
-
-                //else
-                //{
-                //    if (loginAttempts > 2)
-                //    {
-                //        Console.WriteLine("Login failure");
-                //        successfull = false;
-                //    }
-                //}
-
-
             }
-            Console.ReadKey();
 
-            }
         }
     }
+}
 

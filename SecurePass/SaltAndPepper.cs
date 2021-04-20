@@ -9,31 +9,65 @@ namespace SecurePass
 {
     class SaltAndPepper
     {
-        public string Shaker(string plainText, Hash hashAlgorithm, byte[] saltBytes)
+
+
+        private SHA256 sha256;
+
+
+        public SaltAndPepper()
         {
-           
-            // If salt is not specified, generate it.
-            if (saltBytes == null)
+            sha256 = SHA256.Create();
+        }
+
+        public string GetSalt()
+        {
+            byte[] saltBytes = new byte[32];
+
+            using (RNGCryptoServiceProvider serviceProvider = new RNGCryptoServiceProvider())
             {
-                // Define min and max salt sizes.
-                int minSaltSize = 4;
-                int maxSaltSize = 8;
-
-                // Generate a random number for the size of the salt.
-                Random random = new Random();
-                int saltSize = random.Next(minSaltSize, maxSaltSize);
-
-                // Allocate a byte array, which will hold the salt.
-                saltBytes = new byte[saltSize];
-
-                // Initialize a random number generator.
-                //--------use the HasHer----------
-
-                // Fill the salt with cryptographically strong byte values.
-                //rng.GetNonZeroBytes(saltBytes);
-
+                serviceProvider.GetBytes(saltBytes);
             }
-            return "";
+
+            return Convert.ToBase64String(saltBytes);
+        }
+
+        public string ComputeHashWithSalt(string password, string salt)
+        {
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            byte[] saltBytes = Convert.FromBase64String(salt);
+
+            return Convert.ToBase64String(sha256.ComputeHash(Combine(passwordBytes, saltBytes)));
+        }
+
+        public bool ValidateHash(string computed, string stored)
+        {
+            byte[] computedBytes = Convert.FromBase64String(computed);
+            byte[] storedBytes = Convert.FromBase64String(stored);
+
+            return CompareByteArrays(computedBytes, storedBytes, computedBytes.Length);
+        }
+
+        private byte[] Combine(byte[] password, byte[] salt)
+        {
+            byte[] combinedBytes = new byte[password.Length + salt.Length];
+
+            Buffer.BlockCopy(salt, 0, combinedBytes, 0, salt.Length);
+            Buffer.BlockCopy(password, 0, combinedBytes, salt.Length, password.Length);
+
+            return combinedBytes;
+        }
+
+        private bool CompareByteArrays(byte[] a, byte[] b, int length)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                if (a[i] != b[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

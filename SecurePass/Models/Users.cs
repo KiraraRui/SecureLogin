@@ -1,5 +1,4 @@
-﻿
-namespace SecurePass
+﻿namespace SecurePass.Models
 {
     public class Users
     {
